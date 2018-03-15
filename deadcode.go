@@ -52,7 +52,10 @@ func doDir(name string) {
 		return
 	}
 	for _, pkg := range pkgs {
-		doPackage(fs, pkg)
+		reports := doPackage(fs, pkg)
+		for _, report := range reports {
+			errorf("%s: %s is unused", fs.Position(report.pos), report.name)
+		}
 	}
 }
 
@@ -63,7 +66,7 @@ type Package struct {
 	used map[string]bool
 }
 
-func doPackage(fs *token.FileSet, pkg *ast.Package) {
+func doPackage(fs *token.FileSet, pkg *ast.Package) Reports {
 	p := &Package{
 		p:    pkg,
 		fs:   fs,
@@ -122,9 +125,7 @@ func doPackage(fs *token.FileSet, pkg *ast.Package) {
 		}
 	}
 	sort.Sort(reports)
-	for _, report := range reports {
-		errorf("%s: %s is unused", fs.Position(report.pos), report.name)
-	}
+	return reports
 }
 
 type Report struct {
